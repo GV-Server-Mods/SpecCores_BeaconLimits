@@ -49,15 +49,16 @@ namespace BeaconLimits
         public static Config LoadConfig()
         {
             Config config = new Config();
-            if (MyAPIGateway.Utilities.FileExistsInWorldStorage("SpecOpsBeaconLimit_Config.xml", typeof(Config)) == true)
+
+            if (MyAPIGateway.Utilities.FileExistsInWorldStorage("SpecCoresBeaconLimit_Config.xml", typeof(Config)) == true)
             {
-                var reader = MyAPIGateway.Utilities.ReadFileInWorldStorage("SpecOpsBeaconLimit_Config.xml", typeof(Config));
+                var reader = MyAPIGateway.Utilities.ReadFileInWorldStorage("SpecCoresBeaconLimit_Config.xml", typeof(Config));
                 config = MyAPIGateway.Utilities.SerializeFromXML<Config>(reader.ReadToEnd());
                 reader.Close();
             }
             else
             {
-                using (var writer = MyAPIGateway.Utilities.WriteFileInWorldStorage("SpecOpsBeaconLimit_Config.xml", typeof(Config)))
+                using (var writer = MyAPIGateway.Utilities.WriteFileInWorldStorage("SpecCoresBeaconLimit_Config.xml", typeof(Config)))
                 {
                     writer.Write(MyAPIGateway.Utilities.SerializeToXML<Config>(config));
                     writer.Close();

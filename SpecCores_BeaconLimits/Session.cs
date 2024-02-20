@@ -109,9 +109,17 @@ namespace BeaconLimits
             ticks = 0;
 
             beaconCache.factionList.Clear();
-            foreach (var beacon in beacons)
+            for (int i = beacons.Count - 1; i >= 0; i--)
             {
+                IMyBeacon beacon = beacons[i];
                 if (beacon.MarkedForClose) continue;
+                if (beacon.CubeGrid.Physics == null)
+                {
+                    beacons.RemoveAt(i);
+                    beacon.OnMarkForClose -= OnMarkClose;
+                    continue;
+                }
+
                 IMyFaction blockFaction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(beacon.OwnerId);
                 if (blockFaction != null && blockFaction.Tag.Length > 3) continue;
 
@@ -484,7 +492,7 @@ namespace BeaconLimits
             else
                 return;
 
-            if (beacon.CubeGrid == null) return;
+            if (beacon.CubeGrid == null || beacon.CubeGrid.MarkedForClose) return;
             long owner = beacon.CubeGrid.BigOwners.FirstOrDefault();
             IMyFaction faction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(owner);
             if (faction == null && owner != 0)

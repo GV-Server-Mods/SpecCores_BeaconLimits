@@ -32,7 +32,6 @@ namespace BeaconLimits
             beacon = Entity as IMyBeacon;
             if (beacon == null) return;
             if (!isServer) return;
-            if (beacon.Physics == null) return;
 
             if (!Session.Instance.beaconSubtypes.Contains(beacon.BlockDefinition.SubtypeName)) return;
             if (!Session.Instance.beacons.Contains(beacon))
