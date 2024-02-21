@@ -1,4 +1,5 @@
-﻿using Sandbox.Game;
+﻿using Sandbox.Definitions;
+using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using System;
@@ -34,6 +35,7 @@ namespace BeaconLimits
         public ConcurrentDictionary<long, int> playerAlerts = new ConcurrentDictionary<long, int>();
         public Dictionary<long, string> allPlayers = new Dictionary<long, string>();
         public List<string> beaconSubtypes = new List<string>();
+
         //private List<IMyPlayer> players = new List<IMyPlayer>();
 
         public override void LoadData()

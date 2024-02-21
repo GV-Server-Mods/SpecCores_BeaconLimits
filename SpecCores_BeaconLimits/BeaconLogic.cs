@@ -33,9 +33,14 @@ namespace BeaconLimits
             if (beacon == null) return;
             if (!isServer) return;
 
+            IMyFaction faction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(beacon.OwnerId);
+            if (faction != null && faction.Tag.Length > 3) return;
+
             if (!Session.Instance.beaconSubtypes.Contains(beacon.BlockDefinition.SubtypeName)) return;
             if (!Session.Instance.beacons.Contains(beacon))
                 Session.Instance.beacons.Add(beacon);
+
+
 
             beacon.OnMarkForClose += Session.Instance.OnMarkClose;
         }

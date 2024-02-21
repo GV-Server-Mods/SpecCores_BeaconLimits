@@ -1,5 +1,10 @@
 ﻿using ProtoBuf;
+using Sandbox.ModAPI;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using VRage.Game.ModAPI;
 
 namespace BeaconLimits
 {
@@ -162,6 +167,141 @@ namespace BeaconLimits
             {
                 { beaconSubtype, new List<long>() { beaconID } }
             };
+        }
+    }
+
+
+
+
+
+
+    [ProtoContract]
+    public class BeaconDataCache
+    {
+        [ProtoMember(1)] public List<FactionDataCache> dataCache = new List<FactionDataCache>();
+
+        public FactionDataCache GetDataFromFactionId(long factionId)
+        {
+            foreach (var data in dataCache)
+                if (factionId == data.factionId) return data;
+
+            return null;
+        }
+
+        public void AddFactionData(long factionId, long beaconId, string beaconType)
+        {
+            BeaconTypesCache beaconCache = new BeaconTypesCache()
+            {
+                beaconType = beaconType,
+                activeBeaconIds = new List<long> { beaconId }
+            };
+
+            FactionDataCache factionCache = new FactionDataCache()
+            {
+                factionId = factionId,
+                playerId = 0,
+                beaconTypes = new List<BeaconTypesCache> { beaconCache }
+            };
+        }
+
+        
+
+        
+    }
+
+    [ProtoContract]
+    public class FactionDataCache
+    {
+        [ProtoMember(1)] public long factionId;
+        [ProtoMember(2)] public long playerId;
+        [ProtoMember(3)] public List<BeaconTypesCache> beaconTypes;
+
+        public BeaconTypesCache GetBeaconCacheByType(string type)
+        {
+            foreach (var subtypes in beaconTypes)
+                if (subtypes.beaconType == type) return subtypes;
+
+            return null;
+        }
+
+        public void AddNewBeaconType(string type, long beaconId)
+        {
+            BeaconTypesCache cache = new BeaconTypesCache()
+            {
+                beaconType = type,
+                beaconLimit = GetBeaconLimit(type),
+                activeBeaconIds = new List<long> { beaconId }
+            };
+        }
+
+        public int GetBeaconLimit(string beaconType)
+        {
+            IMyFaction faction = MyAPIGateway.Session.Factions.TryGetFactionById(factionId);
+            int limit = 0;
+            foreach (var subtypes in Session.Instance.config._beaconSubtypes)
+            {
+                if (subtypes.subtype == beaconType)
+                {
+                    if (faction != null)
+                    {
+                        if (faction.Members.Count >= subtypes.limit.Length)
+                            return limit = subtypes.limit.Last();
+                        else
+                            return limit = subtypes.limit[faction.Members.Count - 1];
+                    }
+                    else
+                        return limit = subtypes.limit.First();
+                }
+            }
+
+            return limit;
+        }
+    }
+
+    [ProtoContract]
+    public class BeaconTypesCache
+    {
+        [ProtoMember(1)] public string beaconType;
+        [ProtoMember(2)] public int beaconLimit;
+        [ProtoMember(3)] public List<long> activeBeaconIds;
+        [ProtoMember(4)] public List<long> overLimitBeaconIds;
+
+        public bool WillAddingBeaconGoOverLimit(long factionId)
+        {
+            return activeBeaconIds.Count >= beaconLimit;
+        }
+
+        public void AddBeacon(long beaconId)
+        {
+            if (!activeBeaconIds.Contains(beaconId))
+                activeBeaconIds.Add(beaconId);
+        }
+
+        public void AddBeaconOverLimit(long beaconId)
+        {
+            if (!overLimitBeaconIds.Contains(beaconId))
+                overLimitBeaconIds.Add(beaconId);
+        }
+
+        public void RemoveBeacon(long beaconId)
+        {
+            if (activeBeaconIds.Contains(beaconId))
+                activeBeaconIds.Remove(beaconId);
+        }
+
+        public void MigrateOverLimitsToActive(long beaconId)
+        {
+            if (!activeBeaconIds.Contains(beaconId))
+                activeBeaconIds.Add(beaconId);
+
+            if (overLimitBeaconIds.Contains(beaconId))
+                overLimitBeaconIds.Remove(beaconId);
+        }
+
+        public void RemoveBeaconOverLimit(long beaconId)
+        {
+            if (overLimitBeaconIds.Contains(beaconId))
+                overLimitBeaconIds.Remove(beaconId);
         }
     }
 }
